@@ -1,0 +1,36 @@
+---
+config:
+  layout: dagre
+  theme: redux
+  look: classic
+---
+%% PATTERN: Map, Split, Merge
+flowchart LR
+ subgraph Synthetic_13["Synthetic_013"]
+    direction LR
+        S13_d0(("d_900"))
+        S13_d1(("d_901"))
+        S13_d2(("d_902"))
+        S13_d3(("d_903"))
+        S13_d4(("d_904"))
+        S13_d5(("d_905"))
+        S13_d6(("d_906"))
+        S13_d7(("d_907"))
+        S13_t0("t_100")
+        S13_t1("t_101")
+        S13_t2("t_102")
+        S13_t3("t_103")
+        S13_t4("t_104")
+  end
+    S13_d0 --> S13_t0
+    S13_d1 --> S13_t1
+    S13_d2 --> S13_t2
+    S13_d3 --> S13_t3
+    S13_d4 --> S13_t4
+    S13_d5 --> S13_t4
+    S13_d6 --> S13_t4
+    S13_t0 --> S13_d1
+    S13_t1 --> S13_d2 & S13_d3
+    S13_t2 --> S13_d4 & S13_d5
+    S13_t3 --> S13_d6
+    S13_t4 --> S13_d7

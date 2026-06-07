@@ -1,0 +1,131 @@
+---
+config:
+  layout: dagre
+  theme: redux
+  look: classic
+---
+%% PATTERN: Massive Scatter-Gather & Data Intensive
+%% COMMENT: Proposta de unificação dos comportamentos observados no Synthetic_064 e Synthetic_055. Combina um severo fan-out inicial seguido por uma camada altamente paralela que processa os arquivos em múltiplos lotes (agravando o gargalo de I/O) e conclui com um ponto de sincronização rígido (fan-in massivo). Testa de forma simultânea a alocação elástica para muitas tarefas concorrentes e a resiliência a gargalos de transferência e leitura/escrita em armazenamento, balanceando volume de dados e paralelismo. Totaliza 12 tarefas e 48 arquivos de dados.
+flowchart LR
+ subgraph Synthetic_60["Synthetic_060"]
+    direction LR
+        S60_d0(("d_900"))
+        S60_d1(("d_901"))
+        S60_d2(("d_902"))
+        S60_d3(("d_903"))
+        S60_d4(("d_904"))
+        S60_d5(("d_905"))
+        S60_d6(("d_906"))
+        S60_d7(("d_907"))
+        S60_d8(("d_908"))
+        S60_d9(("d_909"))
+        S60_d10(("d_910"))
+        S60_d11(("d_911"))
+        S60_d12(("d_912"))
+        S60_d13(("d_913"))
+        S60_d14(("d_914"))
+        S60_d15(("d_915"))
+        S60_d16(("d_916"))
+        S60_d17(("d_917"))
+        S60_d18(("d_918"))
+        S60_d19(("d_919"))
+        S60_d20(("d_920"))
+        S60_d21(("d_921"))
+        S60_d22(("d_922"))
+        S60_d23(("d_923"))
+        S60_d24(("d_924"))
+        S60_d25(("d_925"))
+        S60_d26(("d_926"))
+        S60_d27(("d_927"))
+        S60_d28(("d_928"))
+        S60_d29(("d_929"))
+        S60_d30(("d_930"))
+        S60_d31(("d_931"))
+        S60_d32(("d_932"))
+        S60_d33(("d_933"))
+        S60_d34(("d_934"))
+        S60_d35(("d_935"))
+        S60_d36(("d_936"))
+        S60_d37(("d_937"))
+        S60_d38(("d_938"))
+        S60_d39(("d_939"))
+        S60_d40(("d_940"))
+        S60_d41(("d_941"))
+        S60_d42(("d_942"))
+        S60_d43(("d_943"))
+        S60_d44(("d_944"))
+        S60_d45(("d_945"))
+        S60_d46(("d_946"))
+        S60_d47(("d_947"))
+        S60_t0("t_100")
+        S60_t1("t_101")
+        S60_t2("t_102")
+        S60_t3("t_103")
+        S60_t4("t_104")
+        S60_t5("t_105")
+        S60_t6("t_106")
+        S60_t7("t_107")
+        S60_t8("t_108")
+        S60_t9("t_109")
+        S60_t10("t_110")
+        S60_t11("t_111")
+  end
+    S60_d0 --> S60_t0
+    S60_d1 --> S60_t1
+    S60_d2 --> S60_t1
+    S60_d3 --> S60_t1
+    S60_d4 --> S60_t2
+    S60_d5 --> S60_t2
+    S60_d6 --> S60_t2
+    S60_d7 --> S60_t3
+    S60_d8 --> S60_t3
+    S60_d9 --> S60_t3
+    S60_d10 --> S60_t4
+    S60_d11 --> S60_t4
+    S60_d12 --> S60_t4
+    S60_d13 --> S60_t5
+    S60_d14 --> S60_t5
+    S60_d15 --> S60_t5
+    S60_d16 --> S60_t6
+    S60_d17 --> S60_t6
+    S60_d18 --> S60_t6
+    S60_d19 --> S60_t7
+    S60_d20 --> S60_t7
+    S60_d21 --> S60_t7
+    S60_d22 --> S60_t8
+    S60_d23 --> S60_t8
+    S60_d24 --> S60_t8
+    S60_d25 --> S60_t9
+    S60_d26 --> S60_t9
+    S60_d27 --> S60_t9
+    S60_d28 --> S60_t10
+    S60_d29 --> S60_t10
+    S60_d30 --> S60_t10
+    S60_d31 --> S60_t11
+    S60_d32 --> S60_t11
+    S60_d33 --> S60_t11
+    S60_d34 --> S60_t11
+    S60_d35 --> S60_t11
+    S60_d36 --> S60_t11
+    S60_d37 --> S60_t11
+    S60_d38 --> S60_t11
+    S60_d39 --> S60_t11
+    S60_d40 --> S60_t11
+    S60_d41 --> S60_t11
+    S60_d42 --> S60_t11
+    S60_d43 --> S60_t11
+    S60_d44 --> S60_t11
+    S60_d45 --> S60_t11
+    S60_d46 --> S60_t11
+    S60_t0 --> S60_d1 & S60_d2 & S60_d3 & S60_d4 & S60_d5 & S60_d6 & S60_d7 & S60_d8 & S60_d9 & S60_d10 & S60_d11 & S60_d12 & S60_d13 & S60_d14 & S60_d15 & S60_d16 & S60_d17 & S60_d18 & S60_d19 & S60_d20 & S60_d21 & S60_d22 & S60_d23 & S60_d24 & S60_d25 & S60_d26 & S60_d27 & S60_d28 & S60_d29 & S60_d30
+    S60_t1 --> S60_d31 & S60_d32
+    S60_t2 --> S60_d33 & S60_d34
+    S60_t3 --> S60_d35 & S60_d36
+    S60_t4 --> S60_d37 & S60_d38
+    S60_t5 --> S60_d39 & S60_d40
+    S60_t6 --> S60_d41 & S60_d42
+    S60_t7 --> S60_d43
+    S60_t8 --> S60_d44
+    S60_t9 --> S60_d45
+    S60_t10 --> S60_d46
+    S60_t11 --> S60_d47
