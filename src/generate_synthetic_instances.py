@@ -3,9 +3,12 @@ import sys
 import argparse
 import re
 
+from pathlib import Path
+
 from core.workflow_def_io import load_workflows
 from model.workflow_generator_random import WorkflowGeneratorRandom
 from model.workflow_generator_user import WorkflowGeneratorUser
+from update_instances_cm_tm import update_file_bounds
 
 # ==========================================
 # --- CONFIGURAÇÃO PADRÃO DE EXECUÇÃO ---
@@ -26,8 +29,8 @@ NUM_VMS = 2
 NUM_CONFIGS = 2
 NUM_BUCKET_RANGES = 3
 USE_INTEGER_TIME = True
-FX_SLOWDOWN_MIN = 2.0   # FX é pelo menos N× mais lenta que a VM em CPU time
-FX_SLOWDOWN_MAX = 70.0  # FX é no máximo N× mais lenta que a VM em CPU time
+FX_SLOWDOWN_MIN = 3.0   # FX é pelo menos N× mais lenta que a VM em CPU time
+FX_SLOWDOWN_MAX = 10.0  # FX é no máximo N× mais lenta que a VM em CPU time
 
 # ==========================================
 # --- PARÂMETROS PARA MODO 'RANDOM' ---
@@ -54,20 +57,13 @@ def build_filename(base_id, num_tasks, num_configs, num_data, num_vms):
     return f"Synthetic_{num_id:03d}_T{num_tasks}_C{num_configs}_D{num_data}_VM{num_vms}.txt"
 
 
-def save_and_print_instance(output_dir, file_name, content, num_tasks, num_configs, num_data, num_vms, mode_name):
+def build_instance(output_dir, file_name, content) -> str:
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, file_name)
-    
     with open(output_path, 'w') as f:
         f.write(content)
-        
-    print(f"Arquivo '{output_path}' gerado com sucesso!")
-    print(f"Resumo da Geração [{mode_name}]:")
-    print(f"  - Tarefas: {num_tasks}")
-    print(f"  - Configs por Tarefa: {num_configs}")
-    print(f"  - Dados: {num_data}")
-    print(f"  - VMs: {num_vms}")
-    print("-" * 50)
+    update_file_bounds(Path(output_path))
+    return output_path
 
 
 def generate_random_content():
@@ -136,7 +132,9 @@ def process_random():
             break
         seq += 1
         
-    save_and_print_instance(RANDOM_OUTPUT_DIR, file_name, content, tasks, configs, data, vms, "Random")
+    output_path = build_instance(RANDOM_OUTPUT_DIR, file_name, content)
+    print(f"Arquivo '{output_path}' gerado | T={tasks} C={configs} D={data} VM={vms}")
+    print("-" * 50)
 
 
 def process_user(target_ids=None):
@@ -146,7 +144,9 @@ def process_user(target_ids=None):
     generated = 0
     for wf_id, content, tasks, configs, data, vms in results:
         file_name = build_filename(wf_id, tasks, configs, data, vms)
-        save_and_print_instance(USER_OUTPUT_DIR, file_name, content, tasks, configs, data, vms, f"User | ID: {wf_id}")
+        output_path = build_instance(USER_OUTPUT_DIR, file_name, content)
+        print(f"Arquivo '{output_path}' gerado | T={tasks} C={configs} D={data} VM={vms}")
+        print("-" * 50)
         generated += 1
         
     print(f"Total de arquivos gerados (User): {generated}")

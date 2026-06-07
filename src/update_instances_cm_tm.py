@@ -82,57 +82,86 @@ def parse_instance_data(lines: list):
 # BLOCO 2: Regras Matemáticas e Upper Bounds
 # ==========================================
 
-def calculate_tm_cm(tasks, data_map, vms, fx_configs, filename=""):
-    print(f"--- Calculando limites para {filename} ---")
+def calculate_tm_cm(tasks, data_map, vms, fx_configs, filename="", verbose=True):
+    if verbose:
+        print(f"--- Calculando limites para {filename} ---")
     total_tm = 0.0
     base_cost_sum = 0.0
-    
+
     for task in tasks:
         max_duration = 0.0
         max_cost = 0.0
-        
+
         # --- Avaliação do pior cenário em VMs (I/O Sequencial) ---
         io_read_vm = sum(max(1.0, data_map[d]['readTime']) for d in task['inputs'])
         io_write_vm = sum(max(1.0, data_map[d]['writeTime']) for d in task['outputs'])
-        
+
         for vm in vms:
             cpu_vm = max(1.0, task['vmCpuTime'] * vm['slowdown'])
             duration_vm = max(1.0, cpu_vm + io_read_vm + io_write_vm)
             cost_vm = duration_vm * vm['costPerSecond']
-            
+
             max_duration = max(max_duration, duration_vm)
             max_cost = max(max_cost, cost_vm)
-                
+
         # --- Avaliação do pior cenário em FX (I/O Paralelo) ---
         io_read_fx = max((max(1.0, data_map[d]['readTime']) for d in task['inputs']), default=0.0)
         io_write_fx = max((max(1.0, data_map[d]['writeTime']) for d in task['outputs']), default=0.0)
-        
-        print(f"  Task {task['id']}:")
-        print(f"    VM I/O -> Read: {io_read_vm:.4f}, Write: {io_write_vm:.4f} (Sequencial)")
-        print(f"    FX I/O -> Read: {io_read_fx:.4f}, Write: {io_write_fx:.4f} (Paralelo)")
-        
+
+        if verbose:
+            print(f"  Task {task['id']}:")
+            print(f"    VM I/O -> Read: {io_read_vm:.4f}, Write: {io_write_vm:.4f} (Sequencial)")
+            print(f"    FX I/O -> Read: {io_read_fx:.4f}, Write: {io_write_fx:.4f} (Paralelo)")
+
         for fx in fx_configs.get(task['id'], []):
             duration_fx = max(1.0, fx['timeInit'] + fx['timeCpu'] + io_read_fx + io_write_fx)
             cost_fx = fx['cost']
-            
+
             max_duration = max(max_duration, duration_fx)
             max_cost = max(max_cost, cost_fx)
-                
-        print(f"    Max Duration: {max_duration:.4f}, Max Base Cost: {max_cost:.10f}")
-        
+
+        if verbose:
+            print(f"    Max Duration: {max_duration:.4f}, Max Base Cost: {max_cost:.10f}")
+
         total_tm += max_duration
         base_cost_sum += max_cost
-        
+
     # A penalidade máxima possível (VM ligada ociosa de 0 a TM)
     max_idle_penalty = sum(vm['costPerSecond'] * total_tm for vm in vms)
     total_cm = base_cost_sum + max_idle_penalty
-    
-    print(f"  -> Total Base Cost: {base_cost_sum:.10f}")
-    print(f"  -> Max Idle Penalty: {max_idle_penalty:.10f}")
-    print(f"  -> Final TM: {total_tm:.4f}")
-    print(f"  -> Final CM: {total_cm:.10f}\n")
-    
+
+    if verbose:
+        print(f"  -> Total Base Cost: {base_cost_sum:.10f}")
+        print(f"  -> Max Idle Penalty: {max_idle_penalty:.10f}")
+        print(f"  -> Final TM: {total_tm:.4f}")
+        print(f"  -> Final CM: {total_cm:.10f}\n")
+
     return total_tm, total_cm
+
+
+def update_file_bounds(filepath: Path, verbose: bool = False) -> None:
+    with open(filepath, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    parsed = parse_instance_data(lines)
+    if not parsed:
+        print(f"Aviso: {filepath.name} não possui dados válidos, bounds não atualizados.")
+        return
+
+    tasks, data_map, vms, fx_configs = parsed
+    new_tm, new_cm = calculate_tm_cm(tasks, data_map, vms, fx_configs, filepath.name, verbose=verbose)
+
+    for i, line in enumerate(lines):
+        if line.strip() and not line.strip().startswith('#'):
+            parts = line.strip().split()
+            if len(parts) >= 8:
+                parts[6] = f"{new_tm:.4f}"
+                parts[7] = f"{new_cm:.10f}"
+                lines[i] = "\t".join(parts) + "\n"
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.writelines(lines)
+                print(f"  TM={new_tm:.4f}  CM={new_cm:.10f}")
+                break
 
 # ==========================================
 # BLOCO 3: Processamento de Arquivos In-Place
@@ -166,36 +195,9 @@ def main():
     print(f"Encontrados {len(matched_files)} arquivos para processar.\n")
 
     for filepath in matched_files:
-        print(f"Lendo arquivo: {filepath.name}")
-        with open(filepath, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-            
-        parsed = parse_instance_data(lines)
-        if not parsed:
-            print(f"Aviso: Arquivo {filepath.name} não possui dados válidos.\n")
-            continue
-            
-        tasks, data_map, vms, fx_configs = parsed
-        new_tm, new_cm = calculate_tm_cm(tasks, data_map, vms, fx_configs, filepath.name)
-        
-        # Substitui in-place a primeira linha válida de dados (onde estão CM e TM)
-        for i, line in enumerate(lines):
-            if line.strip() and not line.strip().startswith('#'):
-                parts = line.strip().split()
-                if len(parts) >= 8:
-                    old_tm, old_cm = parts[6], parts[7]
-                    parts[6] = f"{new_tm:.4f}"
-                    parts[7] = f"{new_cm:.10f}"
-                    lines[i] = "\t".join(parts) + "\n"
-                    
-                    with open(filepath, 'w', encoding='utf-8') as f:
-                        f.writelines(lines)
-                        
-                    print(f"[{filepath.name}] Arquivo atualizado e salvo:")
-                    print(f"  TM: {old_tm} -> {new_tm:.4f}")
-                    print(f"  CM: {old_cm} -> {new_cm:.10f}\n")
-                    print("="*60 + "\n")
-                break
+        print(f"\n[{filepath.name}]")
+        update_file_bounds(filepath, verbose=True)
+        print("=" * 60)
 
 if __name__ == "__main__":
     main()
