@@ -13,12 +13,15 @@ Observacao:
 
 from typing import Dict, List, Tuple
 
-from instance_io import (
+from core.instance_io import (
     ConfigRow,
     DataRow,
     TaskRow,
     VmRow,
     load_workflow_instance,
+    get_data_by_id,
+    get_read_time,
+    get_write_time,
 )
 
 
@@ -39,27 +42,6 @@ def calculate_best_fx_cost(tasks: List[TaskRow], configs: List[ConfigRow]) -> Tu
     return total_cost, best_configs
 
 
-def _data_by_id(datas: List[DataRow], data_id: str) -> DataRow | None:
-    for data_row in datas:
-        if data_row.data_id == data_id:
-            return data_row
-    return None
-
-
-def _read_time(datas: List[DataRow], data_id: str) -> float:
-    row = _data_by_id(datas, data_id)
-    if row is None or row.read_time_avg is None:
-        return 0.0
-    return float(row.read_time_avg)
-
-
-def _write_time(datas: List[DataRow], data_id: str) -> float:
-    row = _data_by_id(datas, data_id)
-    if row is None or row.write_time_avg is None:
-        return 0.0
-    return float(row.write_time_avg)
-
-
 def calculate_best_vm_cost(tasks: List[TaskRow], datas: List[DataRow], vms: List[VmRow]) -> Tuple[float, Dict[str, Tuple[str, float, VmRow]]]:
     """Retorna o menor custo total somando a melhor VM por tarefa."""
     total_cost = 0.0
@@ -69,8 +51,8 @@ def calculate_best_vm_cost(tasks: List[TaskRow], datas: List[DataRow], vms: List
         vm_costs: List[Tuple[str, float, VmRow]] = []
 
         for vm in vms:
-            read_duration = sum(_read_time(datas, did) for did in task.input_ids)
-            write_duration = sum(_write_time(datas, did) for did in task.output_ids)
+            read_duration = sum(get_read_time(datas, did) for did in task.input_ids)
+            write_duration = sum(get_write_time(datas, did) for did in task.output_ids)
             total_duration = task.vm_cpu_time + read_duration + write_duration
             cost = total_duration * vm.cpu_slowdown * vm.cost_per_second
             vm_costs.append((vm.vm_id, cost, vm))

@@ -1,5 +1,5 @@
 import random
-from .workflow_gen_model import WorkflowGeneratorModel
+from .workflow_generator_model import WorkflowGeneratorModel
 
 class WorkflowGeneratorRandom(WorkflowGeneratorModel):
     """
@@ -7,8 +7,9 @@ class WorkflowGeneratorRandom(WorkflowGeneratorModel):
     """
 
     def __init__(self, num_tasks, num_data, num_vms, num_configs=1, num_buckets=1, num_bucket_ranges=3,
-                 max_running_time=100.0, max_financial_cost=0.1, use_integer_time=False):
-        super().__init__(num_tasks, num_data, num_vms, num_configs, num_bucket_ranges, max_running_time, max_financial_cost, use_integer_time)
+                 max_running_time=100.0, max_financial_cost=0.1, use_integer_time=False,
+                 fx_slowdown_min=2.0, fx_slowdown_max=70.0):
+        super().__init__(num_tasks, num_data, num_vms, num_configs, num_bucket_ranges, max_running_time, max_financial_cost, use_integer_time, fx_slowdown_min, fx_slowdown_max)
 
     # Métodos específicos ou sobrescritos devem ser mantidos abaixo
     def _build_tasks_and_data_model(self):

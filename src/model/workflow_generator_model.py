@@ -16,15 +16,16 @@ class WorkflowGeneratorModel:
     ]
 
     def __init__(self, num_tasks, num_data, num_vms, num_configs=1, num_bucket_ranges=3,
-                 max_running_time=100.0, max_financial_cost=0.1, use_integer_time=False):
-        
+                 max_running_time=100.0, max_financial_cost=0.1, use_integer_time=False,
+                 fx_slowdown_min=2.0, fx_slowdown_max=70.0):
+
         # Validação dos parâmetros extras
         if num_vms > len(self.DEFAULT_VMS):
             raise ValueError(f"O número de VMs ({num_vms}) não pode ser maior que o número de VMs pré-definidas ({len(self.DEFAULT_VMS)}).")
-        
+
         if num_bucket_ranges > len(self.DEFAULT_BUCKETS):
             raise ValueError(f"O número de faixas de bucket ({num_bucket_ranges}) não pode ser maior que o número de faixas pré-definidas ({len(self.DEFAULT_BUCKETS)}).")
-        
+
         self.num_tasks = num_tasks
         self.num_configs = num_configs
         self.num_data = num_data
@@ -33,6 +34,8 @@ class WorkflowGeneratorModel:
         self.max_running_time = max_running_time
         self.max_financial_cost = max_financial_cost
         self.use_integer_time = use_integer_time
+        self.fx_slowdown_min = fx_slowdown_min
+        self.fx_slowdown_max = fx_slowdown_max
         self.tasks = []
         self.data_artifacts = {}
         self._model_built = False
@@ -197,8 +200,7 @@ class WorkflowGeneratorModel:
             task_time_write = sum((self.data_artifacts[did]['write_time'] or 0) for did in task['outputs'])
             base_cpu_time = task['cpu_time']
             
-            # A Fx da config 1 deve ser de 2x a 50x mais lenta que a VM base
-            fx_base_time = base_cpu_time * random.uniform(2.0, 50.0)
+            fx_base_time = base_cpu_time * random.uniform(self.fx_slowdown_min, self.fx_slowdown_max)
 
             for conf_id in range(1, num_configs + 1):
                 scaled_cpu_time = fx_base_time

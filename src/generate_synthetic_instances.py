@@ -3,8 +3,9 @@ import sys
 import argparse
 import re
 
-from model.workflow_gen_random import WorkflowGeneratorRandom
-from model.workflow_gen_user import WorkflowGeneratorUserDefined, parse_user_defined_workflows
+from core.workflow_def_io import load_workflows
+from model.workflow_generator_random import WorkflowGeneratorRandom
+from model.workflow_generator_user import WorkflowGeneratorUser
 
 # ==========================================
 # --- CONFIGURAÇÃO PADRÃO DE EXECUÇÃO ---
@@ -25,6 +26,8 @@ NUM_VMS = 2
 NUM_CONFIGS = 2
 NUM_BUCKET_RANGES = 3
 USE_INTEGER_TIME = True
+FX_SLOWDOWN_MIN = 2.0   # FX é pelo menos N× mais lenta que a VM em CPU time
+FX_SLOWDOWN_MAX = 70.0  # FX é no máximo N× mais lenta que a VM em CPU time
 
 # ==========================================
 # --- PARÂMETROS PARA MODO 'RANDOM' ---
@@ -75,7 +78,9 @@ def generate_random_content():
         num_vms=NUM_VMS,
         num_configs=NUM_CONFIGS,
         num_bucket_ranges=NUM_BUCKET_RANGES,
-        use_integer_time=USE_INTEGER_TIME
+        use_integer_time=USE_INTEGER_TIME,
+        fx_slowdown_min=FX_SLOWDOWN_MIN,
+        fx_slowdown_max=FX_SLOWDOWN_MAX,
     )
     
     workflow_content = generator.generate_workflow_file_content()
@@ -88,7 +93,7 @@ def generate_user_contents(target_ids=None):
         print(f"Erro: Arquivo de entrada '{USER_INPUT_FILE}' não encontrado. Verifique seu diretório de execução.")
         sys.exit(1)
         
-    workflows = parse_user_defined_workflows(USER_INPUT_FILE)
+    workflows = load_workflows(USER_INPUT_FILE)
     results = []
     
     for wf in workflows:
@@ -96,7 +101,7 @@ def generate_user_contents(target_ids=None):
             # Ignora se o ID não está na lista a ser gerada
             continue
             
-        generator = WorkflowGeneratorUserDefined(
+        generator = WorkflowGeneratorUser(
             workflow_id=wf['workflow_id'],
             num_tasks=wf['num_tasks'],
             num_data=wf['num_data'],
@@ -109,7 +114,9 @@ def generate_user_contents(target_ids=None):
             task_prefix_replace=TASK_PREFIX_REPLACE,
             data_prefix_replace=DATA_PREFIX_REPLACE,
             task_id_offset=TASK_ID_OFFSET,
-            data_id_offset=DATA_ID_OFFSET
+            data_id_offset=DATA_ID_OFFSET,
+            fx_slowdown_min=FX_SLOWDOWN_MIN,
+            fx_slowdown_max=FX_SLOWDOWN_MAX,
         )
         
         content = generator.generate_workflow_file_content()
