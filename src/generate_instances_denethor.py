@@ -8,7 +8,7 @@ from pathlib import Path
 from core.workflow_def_io import load_workflows
 from model.workflow_generator_random import WorkflowGeneratorRandom
 from model.workflow_generator_user import WorkflowGeneratorUser
-from update_instances_cm_tm import update_file_bounds
+from instances_cm_tm_updates import update_file_bounds
 
 # ==========================================
 # --- CONFIGURAÇÃO PADRÃO DE EXECUÇÃO ---
@@ -35,15 +35,15 @@ FX_SLOWDOWN_MAX = 10.0  # FX é no máximo N× mais lenta que a VM em CPU time
 # ==========================================
 # --- PARÂMETROS PARA MODO 'RANDOM' ---
 # ==========================================
-RANDOM_OUTPUT_DIR = "data/synthetic_random"
+RANDOM_OUTPUT_DIR = "data/synthetic/random"
 RANDOM_NUM_TASKS = 6
 RANDOM_NUM_DATA_ARTIFACTS = 8
 
 # ==========================================
 # --- PARÂMETROS PARA MODO 'USER' ---
 # ==========================================
-USER_INPUT_FILE = "data/synthetic_instances_definition.txt"
-USER_OUTPUT_DIR = "data/synthetic_user_defined"
+USER_INPUT_FILE = "data/instances_definition.txt"
+USER_OUTPUT_DIR = "data/synthetic/user"
 TASK_PREFIX_REPLACE = {'old': 't', 'new': ''}
 DATA_PREFIX_REPLACE = {'old': 'd', 'new': ''}
 TASK_ID_OFFSET = 100

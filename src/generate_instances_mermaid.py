@@ -5,7 +5,7 @@ import shutil
 
 # --- CONFIGURATION PARAMETERS ---
 USER_TARGET_WORKFLOW_IDS = ["Synthetic_032"]
-INPUT_FILE = "data/synthetic_instances_definition.txt"
+INPUT_FILE = "data/instances_definition.txt"
 OUTPUT_DIR = "data/mermaid"
 DEFAULT_FONT_SIZE = "24px"
 DEFAULT_STROKE_WIDTH = "3px"

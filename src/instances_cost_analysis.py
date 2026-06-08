@@ -8,7 +8,7 @@ Objetivo deste script (ler_instancia):
 Observacao:
 - Este script NAO e o validador oficial.
 - A validacao estrutural/semantica fica em:
-    src/validate_instance_file.py
+    src/validate_instance.py
 """
 
 from typing import Dict, List, Tuple
@@ -68,7 +68,7 @@ def calculate_best_vm_cost(tasks: List[TaskRow], datas: List[DataRow], vms: List
 
 
 def main() -> None:
-    base_path = "data/synthetic_user_defined"
+    base_path = "data/synthetic/user"
     file_names = [
         "Synthetic_007_T3_C2_D4_VM2.txt",
         "Synthetic_011_T4_C2_D7_VM2.txt",
