@@ -1,0 +1,656 @@
+ #<#tasks> <#config> <#data> <#vms> <#buckets> <#bucket_ranges> <max_running_time> <max_financial_cost>
+ 5     2     8     2     1     4     49.000000    0.007280
+
+ #<task_id> <activity_id> <task_type__0-VM__1-FX> <vm_cpu_time> <n_input> [<id_input>...] <n_output> [<id_output>...]
+ 10     1     1     1.000000     1     [ 90 ]     1     [ 91 ]
+ 11     1     1     2.000000     1     [ 91 ]     2     [ 92 93 ]
+ 12     2     1     6.000000     1     [ 92 ]     2     [ 94 95 ]
+ 13     2     1     10.000000     1     [ 93 ]     1     [ 96 ]
+ 14     3     1     1.000000     3     [ 94 95 96 ]     1     [ 97 ]
+
+ #<data_id> <data_size> <read_time_avg> <write_time_avg> <is_static> <n_source_devices> [<device_id>...]
+ 90     1590     1.000000     0.000000     1     1     [denethor_bucket]
+ 91     1502     2.000000     2.000000     0     0     [denethor_bucket]
+ 92     1627     4.000000     1.000000     0     0     [denethor_bucket]
+ 93     1963     2.000000     2.000000     0     0     [denethor_bucket]
+ 94     668     2.000000     2.000000     0     0     [denethor_bucket]
+ 95     597     4.000000     1.000000     0     0     [denethor_bucket]
+ 96     614     2.000000     1.000000     0     0     [denethor_bucket]
+ 97     1935     2.000000     3.000000     0     0     [denethor_bucket]
+
+ #<vm_id> <cpu_slowdown> <cost_per_second> <storage_mb> <bandwidth_mbps>
+ 1     1.00000     0.0000051670     0     1250
+ 3     0.25000     0.0000826720     0     5000
+
+ #<task_id> <activity_id> <config_id> <task_p_config_cost> <task_time_total> <task_time_init> <task_time_cpu> <task_time_read> <task_time_write> <task_count>
+ 10     1     1   0.000005  4.000000     0.000000     1.000000     1.000000     2.000000     7
+ 10     1     2   0.000006  3.568800     0.000000     0.568800     1.000000     2.000000     3
+ 11     1     1   0.000010  7.000000     0.000000     2.000000     2.000000     3.000000     2
+ 11     1     2   0.000015  6.423000     0.000000     1.423000     2.000000     3.000000     6
+ 12     2     1   0.000030  13.000000     0.000000     6.000000     4.000000     3.000000     2
+ 12     2     2   0.000037  10.738000     0.000000     3.738000     4.000000     3.000000     3
+ 13     2     1   0.000050  13.000000     0.000000     10.000000     2.000000     1.000000     1
+ 13     2     2   0.000072  9.224100     0.000000     6.224100     2.000000     1.000000     8
+ 14     3     1   0.000005  12.000000     0.000000     1.000000     8.000000     3.000000     4
+ 14     3     2   0.000007  11.609100     0.000000     0.609100     8.000000     3.000000     8
+
+ #<bucket_range_id> <size1_gb> <size2_gb> <cost_per_gb>
+ 0     0     0    100000000.000000
+ 1     0     54975581388800    0.000000
+ 2     54975581388800     494780232499200    0.000000
+ 3     494780232499200     107374182399998926258176    0.000000
+Acabou restricao 1!
+Acabou restricao 2!
+Acabou restricao 4!
+Acabou restricao 5!
+Acabou restricao 6!
+Restricao-7_10_91_1_1_1 
+
+Restricao-7_10_91_1_2_1 
+
+Restricao-7_10_91_1_3_1 
+
+Restricao-7_10_91_2_1_1 
+
+Restricao-7_10_91_2_2_1 
+
+Restricao-7_10_91_2_3_1 
+
+Restricao-7_11_92_1_1_1 
+
+Restricao-7_11_92_1_1_2 
+
+Restricao-7_11_92_1_2_1 
+
+Restricao-7_11_92_1_2_2 
+
+Restricao-7_11_92_1_3_1 
+
+Restricao-7_11_92_1_3_2 
+
+Restricao-7_11_92_2_1_1 
+
+Restricao-7_11_92_2_2_1 
+
+Restricao-7_11_92_2_3_1 
+
+Restricao-7_11_93_1_1_1 
+
+Restricao-7_11_93_1_1_2 
+
+Restricao-7_11_93_1_2_1 
+
+Restricao-7_11_93_1_2_2 
+
+Restricao-7_11_93_1_3_1 
+
+Restricao-7_11_93_1_3_2 
+
+Restricao-7_11_93_2_1_1 
+
+Restricao-7_11_93_2_2_1 
+
+Restricao-7_11_93_2_3_1 
+
+Restricao-7_12_94_1_1_1 
+
+Restricao-7_12_94_1_1_2 
+
+Restricao-7_12_94_1_1_3 
+
+Restricao-7_12_94_1_1_4 
+
+Restricao-7_12_94_1_1_5 
+
+Restricao-7_12_94_1_1_6 
+
+Restricao-7_12_94_1_2_1 
+
+Restricao-7_12_94_1_2_2 
+
+Restricao-7_12_94_1_2_3 
+
+Restricao-7_12_94_1_2_4 
+
+Restricao-7_12_94_1_2_5 
+
+Restricao-7_12_94_1_2_6 
+
+Restricao-7_12_94_1_3_1 
+
+Restricao-7_12_94_1_3_2 
+
+Restricao-7_12_94_1_3_3 
+
+Restricao-7_12_94_1_3_4 
+
+Restricao-7_12_94_1_3_5 
+
+Restricao-7_12_94_1_3_6 
+
+Restricao-7_12_94_2_1_1 
+
+Restricao-7_12_94_2_1_2 
+
+Restricao-7_12_94_2_2_1 
+
+Restricao-7_12_94_2_2_2 
+
+Restricao-7_12_94_2_3_1 
+
+Restricao-7_12_94_2_3_2 
+
+Restricao-7_12_95_1_1_1 
+
+Restricao-7_12_95_1_1_2 
+
+Restricao-7_12_95_1_1_3 
+
+Restricao-7_12_95_1_1_4 
+
+Restricao-7_12_95_1_1_5 
+
+Restricao-7_12_95_1_1_6 
+
+Restricao-7_12_95_1_2_1 
+
+Restricao-7_12_95_1_2_2 
+
+Restricao-7_12_95_1_2_3 
+
+Restricao-7_12_95_1_2_4 
+
+Restricao-7_12_95_1_2_5 
+
+Restricao-7_12_95_1_2_6 
+
+Restricao-7_12_95_1_3_1 
+
+Restricao-7_12_95_1_3_2 
+
+Restricao-7_12_95_1_3_3 
+
+Restricao-7_12_95_1_3_4 
+
+Restricao-7_12_95_1_3_5 
+
+Restricao-7_12_95_1_3_6 
+
+Restricao-7_12_95_2_1_1 
+
+Restricao-7_12_95_2_1_2 
+
+Restricao-7_12_95_2_2_1 
+
+Restricao-7_12_95_2_2_2 
+
+Restricao-7_12_95_2_3_1 
+
+Restricao-7_12_95_2_3_2 
+
+Restricao-7_13_96_1_1_1 
+
+Restricao-7_13_96_1_1_2 
+
+Restricao-7_13_96_1_1_3 
+
+Restricao-7_13_96_1_1_4 
+
+Restricao-7_13_96_1_1_5 
+
+Restricao-7_13_96_1_1_6 
+
+Restricao-7_13_96_1_1_7 
+
+Restricao-7_13_96_1_1_8 
+
+Restricao-7_13_96_1_1_9 
+
+Restricao-7_13_96_1_1_10 
+
+Restricao-7_13_96_1_2_1 
+
+Restricao-7_13_96_1_2_2 
+
+Restricao-7_13_96_1_2_3 
+
+Restricao-7_13_96_1_2_4 
+
+Restricao-7_13_96_1_2_5 
+
+Restricao-7_13_96_1_2_6 
+
+Restricao-7_13_96_1_2_7 
+
+Restricao-7_13_96_1_2_8 
+
+Restricao-7_13_96_1_2_9 
+
+Restricao-7_13_96_1_2_10 
+
+Restricao-7_13_96_1_3_1 
+
+Restricao-7_13_96_1_3_2 
+
+Restricao-7_13_96_1_3_3 
+
+Restricao-7_13_96_1_3_4 
+
+Restricao-7_13_96_1_3_5 
+
+Restricao-7_13_96_1_3_6 
+
+Restricao-7_13_96_1_3_7 
+
+Restricao-7_13_96_1_3_8 
+
+Restricao-7_13_96_1_3_9 
+
+Restricao-7_13_96_1_3_10 
+
+Restricao-7_13_96_2_1_1 
+
+Restricao-7_13_96_2_1_2 
+
+Restricao-7_13_96_2_1_3 
+
+Restricao-7_13_96_2_2_1 
+
+Restricao-7_13_96_2_2_2 
+
+Restricao-7_13_96_2_2_3 
+
+Restricao-7_13_96_2_3_1 
+
+Restricao-7_13_96_2_3_2 
+
+Restricao-7_13_96_2_3_3 
+
+Restricao-7_14_97_1_1_1 
+
+Restricao-7_14_97_1_2_1 
+
+Restricao-7_14_97_1_3_1 
+
+Restricao-7_14_97_2_1_1 
+
+Restricao-7_14_97_2_2_1 
+
+Restricao-7_14_97_2_3_1 
+
+Acabou restricao 7!
+Acabou restricao 8!
+Acabou restricao 9!
+Acabou restricao 10.1!
+Acabou restricao 10.2!
+Acabou restricao 11!
+Acabou restricao 12!
+Acabou restricao 13!
+Acabou restricao 14!
+Acabou restricao 15!
+Acabou restricao 16!
+Acabou restricao 17!
+Acabou restricao 18!
+Acabou restricao 19!
+Acabou restricao 20!
+Acabou restricao 21!
+Acabou restricao 22!
+Acabou restricao 23!
+Acabou restricao 24!
+Acabou restricao 26!
+Acabou restricao 27!
+Acabou restricao 28!
+Acabou restricao 29!
+
+Optimal solution found.
+
+The objetive function value = 0.304796
+var1
+var2
+x_fx_10_1_2 = 1t tarefa10 comecou sua execucao na configuracao 1 no tempo t 2
+x_fx_11_1_7 = 1t tarefa11 comecou sua execucao na configuracao 1 no tempo t 7
+x_fx_12_2_14 = 1t tarefa12 comecou sua execucao na configuracao 2 no tempo t 14
+x_fx_13_2_13 = 1t tarefa13 comecou sua execucao na configuracao 2 no tempo t 13
+x_fx_14_1_25 = 1t tarefa14 comecou sua execucao na configuracao 1 no tempo t 25
+var3
+fx_10_1 = 1
+fx_11_1 = 1
+fx_12_2 = 1
+fx_13_2 = 1
+fx_14_1 = 1
+var4
+var4.1
+xfxD_10_90_3_1 = 1	 tarefa executando em FX 10 comecou a ler o dado 90 do dispositivo 3 no tempo 1
+xfxD_11_91_3_5 = 1	 tarefa executando em FX 11 comecou a ler o dado 91 do dispositivo 3 no tempo 5
+xfxD_12_92_3_10 = 1	 tarefa executando em FX 12 comecou a ler o dado 92 do dispositivo 3 no tempo 10
+xfxD_13_93_3_11 = 1	 tarefa executando em FX 13 comecou a ler o dado 93 do dispositivo 3 no tempo 11
+xfxD_14_94_3_21 = 1	 tarefa executando em FX 14 comecou a ler o dado 94 do dispositivo 3 no tempo 21
+xfxD_14_95_3_21 = 1	 tarefa executando em FX 14 comecou a ler o dado 95 do dispositivo 3 no tempo 21
+xfxD_14_96_3_21 = 1	 tarefa executando em FX 14 comecou a ler o dado 96 do dispositivo 3 no tempo 21
+var5
+var5.1
+xfxE_91_3_3 = 1	 dado 91 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 3
+xfxE_92_3_9 = 1	 dado 92 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 9
+xfxE_93_3_9 = 1	 dado 93 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 9
+xfxE_94_3_18 = 1	 dado 94 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 18
+xfxE_95_3_18 = 1	 dado 95 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 18
+xfxE_96_3_20 = 1	 dado 96 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 20
+xfxE_97_3_26 = 1	 dado 97 gerado por tarefa FX comecou a ser escrito no dispositivo 3 no tempo 26
+var6
+y_90_3_1 = 1
+y_90_3_2 = 1
+y_90_3_3 = 1
+y_90_3_4 = 1
+y_90_3_5 = 1
+y_90_3_6 = 1
+y_90_3_7 = 1
+y_90_3_8 = 1
+y_90_3_9 = 1
+y_90_3_10 = 1
+y_90_3_11 = 1
+y_90_3_12 = 1
+y_90_3_13 = 1
+y_90_3_14 = 1
+y_90_3_15 = 1
+y_90_3_16 = 1
+y_90_3_17 = 1
+y_90_3_18 = 1
+y_90_3_19 = 1
+y_90_3_20 = 1
+y_90_3_21 = 1
+y_90_3_22 = 1
+y_90_3_23 = 1
+y_90_3_24 = 1
+y_90_3_25 = 1
+y_90_3_26 = 1
+y_90_3_27 = 1
+y_90_3_28 = 1
+y_90_3_29 = 1
+y_90_3_30 = 1
+y_90_3_31 = 1
+y_90_3_32 = 1
+y_90_3_33 = 1
+y_90_3_34 = 1
+y_90_3_35 = 1
+y_90_3_36 = 1
+y_90_3_37 = 1
+y_90_3_38 = 1
+y_90_3_39 = 1
+y_90_3_40 = 1
+y_90_3_41 = 1
+y_90_3_42 = 1
+y_90_3_43 = 1
+y_90_3_44 = 1
+y_90_3_45 = 1
+y_90_3_46 = 1
+y_90_3_47 = 1
+y_90_3_48 = 1
+y_90_3_49 = 1
+y_91_3_5 = 1
+y_91_3_6 = 1
+y_91_3_7 = 1
+y_91_3_8 = 1
+y_91_3_9 = 1
+y_91_3_10 = 1
+y_91_3_11 = 1
+y_91_3_12 = 1
+y_91_3_13 = 1
+y_91_3_14 = 1
+y_91_3_15 = 1
+y_91_3_16 = 1
+y_91_3_17 = 1
+y_91_3_18 = 1
+y_91_3_19 = 1
+y_91_3_20 = 1
+y_91_3_21 = 1
+y_91_3_22 = 1
+y_91_3_23 = 1
+y_91_3_24 = 1
+y_91_3_25 = 1
+y_91_3_26 = 1
+y_91_3_27 = 1
+y_91_3_28 = 1
+y_91_3_29 = 1
+y_91_3_30 = 1
+y_91_3_31 = 1
+y_91_3_32 = 1
+y_91_3_33 = 1
+y_91_3_34 = 1
+y_91_3_35 = 1
+y_91_3_36 = 1
+y_91_3_37 = 1
+y_91_3_38 = 1
+y_91_3_39 = 1
+y_91_3_40 = 1
+y_91_3_41 = 1
+y_91_3_42 = 1
+y_91_3_43 = 1
+y_91_3_44 = 1
+y_91_3_45 = 1
+y_91_3_46 = 1
+y_91_3_47 = 1
+y_91_3_48 = 1
+y_91_3_49 = 1
+y_92_3_10 = 1
+y_92_3_11 = 1
+y_92_3_12 = 1
+y_92_3_13 = 1
+y_92_3_14 = 1
+y_92_3_15 = 1
+y_92_3_16 = 1
+y_92_3_17 = 1
+y_92_3_18 = 1
+y_92_3_19 = 1
+y_92_3_20 = 1
+y_92_3_21 = 1
+y_92_3_22 = 1
+y_92_3_23 = 1
+y_92_3_24 = 1
+y_92_3_25 = 1
+y_92_3_26 = 1
+y_92_3_27 = 1
+y_92_3_28 = 1
+y_92_3_29 = 1
+y_92_3_30 = 1
+y_92_3_31 = 1
+y_92_3_32 = 1
+y_92_3_33 = 1
+y_92_3_34 = 1
+y_92_3_35 = 1
+y_92_3_36 = 1
+y_92_3_37 = 1
+y_92_3_38 = 1
+y_92_3_39 = 1
+y_92_3_40 = 1
+y_92_3_41 = 1
+y_92_3_42 = 1
+y_92_3_43 = 1
+y_92_3_44 = 1
+y_92_3_45 = 1
+y_92_3_46 = 1
+y_92_3_47 = 1
+y_92_3_48 = 1
+y_92_3_49 = 1
+y_93_3_11 = 1
+y_93_3_12 = 1
+y_93_3_13 = 1
+y_93_3_14 = 1
+y_93_3_15 = 1
+y_93_3_16 = 1
+y_93_3_17 = 1
+y_93_3_18 = 1
+y_93_3_19 = 1
+y_93_3_20 = 1
+y_93_3_21 = 1
+y_93_3_22 = 1
+y_93_3_23 = 1
+y_93_3_24 = 1
+y_93_3_25 = 1
+y_93_3_26 = 1
+y_93_3_27 = 1
+y_93_3_28 = 1
+y_93_3_29 = 1
+y_93_3_30 = 1
+y_93_3_31 = 1
+y_93_3_32 = 1
+y_93_3_33 = 1
+y_93_3_34 = 1
+y_93_3_35 = 1
+y_93_3_36 = 1
+y_93_3_37 = 1
+y_93_3_38 = 1
+y_93_3_39 = 1
+y_93_3_40 = 1
+y_93_3_41 = 1
+y_93_3_42 = 1
+y_93_3_43 = 1
+y_93_3_44 = 1
+y_93_3_45 = 1
+y_93_3_46 = 1
+y_93_3_47 = 1
+y_93_3_48 = 1
+y_93_3_49 = 1
+y_94_3_20 = 1
+y_94_3_21 = 1
+y_94_3_22 = 1
+y_94_3_23 = 1
+y_94_3_24 = 1
+y_94_3_25 = 1
+y_94_3_26 = 1
+y_94_3_27 = 1
+y_94_3_28 = 1
+y_94_3_29 = 1
+y_94_3_30 = 1
+y_94_3_31 = 1
+y_94_3_32 = 1
+y_94_3_33 = 1
+y_94_3_34 = 1
+y_94_3_35 = 1
+y_94_3_36 = 1
+y_94_3_37 = 1
+y_94_3_38 = 1
+y_94_3_39 = 1
+y_94_3_40 = 1
+y_94_3_41 = 1
+y_94_3_42 = 1
+y_94_3_43 = 1
+y_94_3_44 = 1
+y_94_3_45 = 1
+y_94_3_46 = 1
+y_94_3_47 = 1
+y_94_3_48 = 1
+y_94_3_49 = 1
+y_95_3_19 = 1
+y_95_3_20 = 1
+y_95_3_21 = 1
+y_95_3_22 = 1
+y_95_3_23 = 1
+y_95_3_24 = 1
+y_95_3_25 = 1
+y_95_3_26 = 1
+y_95_3_27 = 1
+y_95_3_28 = 1
+y_95_3_29 = 1
+y_95_3_30 = 1
+y_95_3_31 = 1
+y_95_3_32 = 1
+y_95_3_33 = 1
+y_95_3_34 = 1
+y_95_3_35 = 1
+y_95_3_36 = 1
+y_95_3_37 = 1
+y_95_3_38 = 1
+y_95_3_39 = 1
+y_95_3_40 = 1
+y_95_3_41 = 1
+y_95_3_42 = 1
+y_95_3_43 = 1
+y_95_3_44 = 1
+y_95_3_45 = 1
+y_95_3_46 = 1
+y_95_3_47 = 1
+y_95_3_48 = 1
+y_95_3_49 = 1
+y_96_3_21 = 1
+y_96_3_22 = 1
+y_96_3_23 = 1
+y_96_3_24 = 1
+y_96_3_25 = 1
+y_96_3_26 = 1
+y_96_3_27 = 1
+y_96_3_28 = 1
+y_96_3_29 = 1
+y_96_3_30 = 1
+y_96_3_31 = 1
+y_96_3_32 = 1
+y_96_3_33 = 1
+y_96_3_34 = 1
+y_96_3_35 = 1
+y_96_3_36 = 1
+y_96_3_37 = 1
+y_96_3_38 = 1
+y_96_3_39 = 1
+y_96_3_40 = 1
+y_96_3_41 = 1
+y_96_3_42 = 1
+y_96_3_43 = 1
+y_96_3_44 = 1
+y_96_3_45 = 1
+y_96_3_46 = 1
+y_96_3_47 = 1
+y_96_3_48 = 1
+y_96_3_49 = 1
+y_97_3_29 = 1
+y_97_3_30 = 1
+y_97_3_31 = 1
+y_97_3_32 = 1
+y_97_3_33 = 1
+y_97_3_34 = 1
+y_97_3_35 = 1
+y_97_3_36 = 1
+y_97_3_37 = 1
+y_97_3_38 = 1
+y_97_3_39 = 1
+y_97_3_40 = 1
+y_97_3_41 = 1
+y_97_3_42 = 1
+y_97_3_43 = 1
+y_97_3_44 = 1
+y_97_3_45 = 1
+y_97_3_46 = 1
+y_97_3_47 = 1
+y_97_3_48 = 1
+y_97_3_49 = 1
+var7
+y-_90_3 = 1
+y-_91_1 = 1
+y-_91_2 = 1
+y-_91_3 = 1
+y-_92_1 = 1
+y-_92_2 = 1
+y-_92_3 = 1
+y-_93_1 = 1
+y-_93_2 = 1
+y-_93_3 = 1
+y-_94_1 = 1
+y-_94_2 = 1
+y-_94_3 = 1
+y-_95_1 = 1
+y-_95_2 = 1
+y-_95_3 = 1
+y-_96_1 = 1
+y-_96_2 = 1
+y-_96_3 = 1
+y-_97_1 = 1
+y-_97_2 = 1
+y-_97_3 = 1
+var8
+b_3_2 = 1
+var9
+var10
+var11
+var12
+z = 29
+CustoVM= 0 CustoFX= 0.000129259
+Tempo de execucao (CPU)= 5.12261
+Tempo de execucao (Relogio)= 2
