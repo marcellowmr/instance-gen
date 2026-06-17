@@ -1,178 +1,120 @@
 #!/usr/bin/env python3
 """
-Script para recalcular limites seguros de TM e CM nas instâncias originais.
+Wrapper CLI para recalcular TM (max_running_time) e CM (max_financial_cost) das instâncias.
 
-Ele faz a leitura estruturada dos arquivos, simula o cenário mais pessimista possível 
-(TM avaliando máquinas mais lentas e I/O sequencial em VM vs paralelo em FX)
-e reescreve a linha de cabeçalho do arquivo diretamente, mantendo a formatação original.
+Suporta duas estratégias de cálculo, ambas centralizadas em core/ e reutilizáveis:
+
+  resource_aware (padrão) -- core.tm_cm_resource_aware
+      List scheduling + custo do recurso mais caro. Bounds apertados que o CPLEX consegue
+      resolver. Tipo 1 (VM/FX) → FX paralelo ilimitado; tipo 0 (só VM) → disputam num_vms VMs.
+      CM é o dual: tipo 1 = max(FX, VM) por tarefa; tipo 0 = VM ligada todo o workflow.
+      Margem padrão 0.25.
+
+  pessimistic -- core.tm_cm_pessimistic
+      Pior caso sequencial (implementação segura original): soma das piores durações, sem
+      DAG nem paralelismo, com TODAS as VMs ociosas o horizonte todo. Bounds válidos porém
+      muito folgados (TM alto explode o espaço de busca do CPLEX). Margem padrão 0.0.
+
+NOTA (piso de tempo): instâncias sintéticas usam tempo inteiro (piso 1.0); reais usam
+    segundos contínuos (piso 0.0). Detectado automaticamente.
+
+Uso:
+    python instances_cm_tm_updates.py --instances-dir ../data/synthetic/user
+    python instances_cm_tm_updates.py --instances-dir ../data/synthetic/user --strategy pessimistic
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-# ==========================================
-# BLOCO 1: Parsing e Leitura
-# ==========================================
+from core import tm_cm_resource_aware, tm_cm_pessimistic
 
-def _parse_int_list(s: str) -> list:
-    s = s.strip().strip('[]')
-    if not s:
-        return []
-    return [int(x.strip()) for x in s.split(',')]
-
-def _parse_value(s: str) -> float:
-    s = s.strip()
-    return -1.0 if s == 'None' else float(s)
-
-def parse_instance_data(lines: list):
-    data_lines = [l.strip() for l in lines if l.strip() and not l.strip().startswith('#')]
-    if not data_lines:
-        return None
-        
-    idx = 0
-    p = data_lines[idx].split()
-    idx += 1
-    
-    nTasks, nConfigs, nData, nVMs = int(p[0]), int(p[1]), int(p[2]), int(p[3])
-    
-    tasks = []
-    for _ in range(nTasks):
-        p = data_lines[idx].split()
-        idx += 1
-        tasks.append({
-            'id': int(p[0]),
-            'vmCpuTime': float(p[3]),
-            'inputs': _parse_int_list(p[5]),
-            'outputs': _parse_int_list(p[7])
-        })
-        
-    data_map = {}
-    for _ in range(nData):
-        p = data_lines[idx].split()
-        idx += 1
-        data_map[int(p[0])] = {
-            'readTime': _parse_value(p[2]),
-            'writeTime': _parse_value(p[3])
-        }
-        
-    vms = []
-    for _ in range(nVMs):
-        p = data_lines[idx].split()
-        idx += 1
-        vms.append({
-            'id': int(p[0]),
-            'slowdown': float(p[1]),
-            'costPerSecond': float(p[2])
-        })
-        
-    fx_configs = {}
-    for _ in range(nTasks * nConfigs):
-        p = data_lines[idx].split()
-        idx += 1
-        fx_configs.setdefault(int(p[0]), []).append({
-            'cost': float(p[3]),
-            'timeInit': float(p[5]),
-            'timeCpu': float(p[6])
-        })
-        
-    return tasks, data_map, vms, fx_configs
-
-# ==========================================
-# BLOCO 2: Regras Matemáticas e Upper Bounds
-# ==========================================
-
-def calculate_tm_cm(tasks, data_map, vms, fx_configs, filename="", verbose=True):
-    if verbose:
-        print(f"--- Calculando limites para {filename} ---")
-    total_tm = 0.0
-    base_cost_sum = 0.0
-
-    for task in tasks:
-        max_duration = 0.0
-        max_cost = 0.0
-
-        # --- Avaliação do pior cenário em VMs (I/O Sequencial) ---
-        io_read_vm = sum(max(1.0, data_map[d]['readTime']) for d in task['inputs'])
-        io_write_vm = sum(max(1.0, data_map[d]['writeTime']) for d in task['outputs'])
-
-        for vm in vms:
-            cpu_vm = max(1.0, task['vmCpuTime'] * vm['slowdown'])
-            duration_vm = max(1.0, cpu_vm + io_read_vm + io_write_vm)
-            cost_vm = duration_vm * vm['costPerSecond']
-
-            max_duration = max(max_duration, duration_vm)
-            max_cost = max(max_cost, cost_vm)
-
-        # --- Avaliação do pior cenário em FX (I/O Paralelo) ---
-        io_read_fx = max((max(1.0, data_map[d]['readTime']) for d in task['inputs']), default=0.0)
-        io_write_fx = max((max(1.0, data_map[d]['writeTime']) for d in task['outputs']), default=0.0)
-
-        if verbose:
-            print(f"  Task {task['id']}:")
-            print(f"    VM I/O -> Read: {io_read_vm:.4f}, Write: {io_write_vm:.4f} (Sequencial)")
-            print(f"    FX I/O -> Read: {io_read_fx:.4f}, Write: {io_write_fx:.4f} (Paralelo)")
-
-        for fx in fx_configs.get(task['id'], []):
-            duration_fx = max(1.0, fx['timeInit'] + fx['timeCpu'] + io_read_fx + io_write_fx)
-            cost_fx = fx['cost']
-
-            max_duration = max(max_duration, duration_fx)
-            max_cost = max(max_cost, cost_fx)
-
-        if verbose:
-            print(f"    Max Duration: {max_duration:.4f}, Max Base Cost: {max_cost:.10f}")
-
-        total_tm += max_duration
-        base_cost_sum += max_cost
-
-    # A penalidade máxima possível (VM ligada ociosa de 0 a TM)
-    max_idle_penalty = sum(vm['costPerSecond'] * total_tm for vm in vms)
-    total_cm = base_cost_sum + max_idle_penalty
-
-    if verbose:
-        print(f"  -> Total Base Cost: {base_cost_sum:.10f}")
-        print(f"  -> Max Idle Penalty: {max_idle_penalty:.10f}")
-        print(f"  -> Final TM: {total_tm:.4f}")
-        print(f"  -> Final CM: {total_cm:.10f}\n")
-
-    return total_tm, total_cm
+# Estratégias disponíveis: nome -> (módulo, margem padrão)
+STRATEGIES = {
+    'resource_aware': (tm_cm_resource_aware, 0.25),
+    'pessimistic': (tm_cm_pessimistic, 0.0),
+}
+DEFAULT_STRATEGY = 'resource_aware'
 
 
-def update_file_bounds(filepath: Path, verbose: bool = False) -> None:
-    with open(filepath, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+def update_file_bounds(filepath: Path, verbose: bool = False, margin: float = None,
+                       strategy: str = DEFAULT_STRATEGY) -> None:
+    """
+    Recalcula TM/CM e reescreve a linha de cabeçalho do arquivo, preservando o formato.
 
-    parsed = parse_instance_data(lines)
-    if not parsed:
-        print(f"Aviso: {filepath.name} não possui dados válidos, bounds não atualizados.")
+    Args:
+        filepath: Caminho do arquivo de instância.
+        verbose: Imprimir diagnósticos intermediários do cálculo.
+        margin: Folga aplicada a TM e CM. Se None, usa a margem padrão da estratégia.
+        strategy: 'resource_aware' (padrão) ou 'pessimistic'.
+    """
+    module, default_margin = STRATEGIES[strategy]
+    if margin is None:
+        margin = default_margin
+
+    try:
+        bounds = module.compute_bounds(filepath, margin=margin)
+    except Exception as e:
+        print(f"  Erro ao processar {filepath.name}: {e}")
         return
 
-    tasks, data_map, vms, fx_configs = parsed
-    new_tm, new_cm = calculate_tm_cm(tasks, data_map, vms, fx_configs, filepath.name, verbose=verbose)
+    new_tm = bounds['tm_final']
+    new_cm = bounds['cm_final']
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
 
     for i, line in enumerate(lines):
         if line.strip() and not line.strip().startswith('#'):
             parts = line.strip().split()
             if len(parts) >= 8:
+                # Posições 6 e 7 são TM e CM
                 parts[6] = f"{new_tm:.4f}"
                 parts[7] = f"{new_cm:.10f}"
                 lines[i] = "\t".join(parts) + "\n"
                 with open(filepath, 'w', encoding='utf-8') as f:
                     f.writelines(lines)
-                print(f"  TM={new_tm:.4f}  CM={new_cm:.10f}")
+                print(f"  {filepath.name}: TM={new_tm:.4f}  CM={new_cm:.10f}")
+                if verbose:
+                    _print_diagnostics(bounds)
                 break
 
-# ==========================================
-# BLOCO 3: Processamento de Arquivos In-Place
-# ==========================================
+
+def _print_diagnostics(bounds: dict) -> None:
+    """Imprime as chaves de diagnóstico presentes (variam por estratégia)."""
+    if 'tm_ls' in bounds:        # resource_aware
+        print(f"    TM_seq={bounds['tm_seq']:.4f}, TM_listsched={bounds['tm_ls']:.4f}")
+        print(f"    CM_tasks={bounds['cm_tasks']:.10f}, CM_vm_idle={bounds['cm_vm_idle']:.10f}")
+    elif 'tm_raw' in bounds:     # pessimistic
+        print(f"    TM_raw={bounds['tm_raw']:.4f}")
+        print(f"    base_cost={bounds['base_cost']:.10f}, idle_penalty={bounds['idle_penalty']:.10f}")
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Atualiza TM e CM nas instâncias .txt")
-    parser.add_argument("--instances-dir", type=Path, default=Path(""),
-                        help="Caminho relativo ou absoluto para o diretório de instâncias")
-    parser.add_argument("--patterns", nargs="+", default=["*.txt"],
-                        help="Lista de padrões para filtrar arquivos (ex: Synthetic_007*.txt). Use * como curinga.")
+    parser = argparse.ArgumentParser(
+        description="Atualiza TM e CM nas instâncias .txt (resource-aware ou pessimista)"
+    )
+    parser.add_argument(
+        "--instances-dir", type=Path, default=Path(""),
+        help="Diretório (relativo a este script ou absoluto) com as instâncias"
+    )
+    parser.add_argument(
+        "--patterns", nargs="+", default=["*.txt"],
+        help="Padrões de arquivo (ex: Synthetic_007*.txt). Use * como curinga."
+    )
+    parser.add_argument(
+        "--strategy", choices=sorted(STRATEGIES), default=DEFAULT_STRATEGY,
+        help=f"Estratégia de cálculo (padrão {DEFAULT_STRATEGY})"
+    )
+    parser.add_argument(
+        "--margin", type=float, default=None,
+        help="Folga aplicada a TM e CM. Se omitido, usa o padrão da estratégia "
+             "(resource_aware=0.25, pessimistic=0.0)."
+    )
+    parser.add_argument(
+        "--verbose", action="store_true",
+        help="Imprimir diagnósticos intermediários de cálculo"
+    )
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent.resolve()
@@ -182,22 +124,23 @@ def main():
         print(f"Erro: Diretório {target_dir} não encontrado.")
         sys.exit(1)
 
-    matched_files = set()
+    matched = set()
     for pattern in args.patterns:
-        matched_files.update(target_dir.glob(pattern))
-    
-    matched_files = sorted(list(matched_files))
+        matched.update(target_dir.glob(pattern))
+    matched = sorted(matched)
 
-    if not matched_files:
+    if not matched:
         print(f"Nenhum arquivo encontrado em {target_dir} com os padrões: {args.patterns}")
         return
 
-    print(f"Encontrados {len(matched_files)} arquivos para processar.\n")
-
-    for filepath in matched_files:
-        print(f"\n[{filepath.name}]")
-        update_file_bounds(filepath, verbose=True)
+    eff_margin = args.margin if args.margin is not None else STRATEGIES[args.strategy][1]
+    print(f"Encontrados {len(matched)} arquivos "
+          f"(estratégia={args.strategy}, margem={eff_margin:.0%}).\n")
+    for filepath in matched:
+        update_file_bounds(filepath, verbose=args.verbose, margin=args.margin,
+                           strategy=args.strategy)
         print("=" * 60)
+
 
 if __name__ == "__main__":
     main()
