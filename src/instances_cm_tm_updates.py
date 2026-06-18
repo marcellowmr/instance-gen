@@ -15,8 +15,10 @@ Suporta duas estratégias de cálculo, ambas centralizadas em core/ e reutilizá
       DAG nem paralelismo, com TODAS as VMs ociosas o horizonte todo. Bounds válidos porém
       muito folgados (TM alto explode o espaço de busca do CPLEX). Margem padrão 0.0.
 
-NOTA (piso de tempo): instâncias sintéticas usam tempo inteiro (piso 1.0); reais usam
-    segundos contínuos (piso 0.0). Detectado automaticamente.
+NOTA (discretização de tempo): o resource_aware aplica teto-por-componente (ceil em cada
+    bloco de leitura/exec/escrita, refletindo o grão de 1s do modelo time-indexed do CPLEX),
+    regra única para sintéticas e reais. O pessimistic mantém o piso antigo (0.0/1.0
+    detectado automaticamente), como referência histórica congelada.
 
 Uso:
     python instances_cm_tm_updates.py --instances-dir ../data/synthetic/user

@@ -16,11 +16,41 @@ INTUICAO (CM) -- a regra e o DUAL do TM:
     (nao so o FX barato, que subdimensionaria o limite). Tarefas tipo 0 sao cobradas como
     VM ligada do inicio ao fim do workflow (Sigma_VMs_usadas custo/s * TM).
 
-NOTA sobre piso de tempo: instancias sinteticas usam tempo inteiro (piso 1.0); reais usam
-    segundos continuos (sub-1, piso 0.0). O piso e aplicado so no TOTAL da duracao, nunca por
-    termo de I/O (isso era um bug que inflava as reais).
+REGRA DE DISCRETIZACAO (teto por componente) -- substitui o antigo "piso de tempo":
+    O modelo MILP e time-indexed sobre T = {1, ..., TM} (conjunto de periodos INTEIROS,
+    ver main.tex, grao = 1s). Leitura, processamento (init+cpu) e escrita aparecem como
+    variaveis time-indexed SEPARADAS (r4.vm, r4.fx, r7.2): cada uma ocupa seu proprio bloco
+    de periodos inteiros, nunca uma fracao de periodo. Logo, para que TM/CM sejam limites
+    superiores validos do que o CPLEX de fato precisa, cada COMPONENTE da duracao tem que
+    ser arredondado para cima (ceil) ANTES de somar -- nao a duracao total (arredondar so o
+    total, ou usar um piso fixo tipo 1.0/0.0, podia ficar abaixo do que o CPLEX realmente
+    fatura/agenda quando a tarefa tem varios componentes fracionarios pequenos).
+
+        VM (serializa I/O):  Sum(ceil(read_d)) + ceil(cpu*slowdown) + Sum(ceil(write_d))
+        FX (paraleliza I/O): ceil(max(read_d)) + ceil(init + cpu)   + ceil(max(write_d))
+
+    Vale identicamente para sinteticas e reais -- nao ha mais deteccao de "tipo de
+    instancia". `detect_time_floor` continua aqui apenas porque `tm_cm_pessimistic.py`
+    (referencia historica congelada) ainda importa e usa o piso antigo; o resource-aware
+    nao depende mais dela.
+
+    Validado: nas 5 sinteticas de referencia (Synthetic_007/011/012/013/022) o TM_final nao
+    muda em relacao a versao anterior (o caminho critico ja e inteiro), e o CM_final sobe
+    1.8%-8.8% (mais conservador, ainda bem acima do otimo de alpha=0.95).
+
+    CM e teto de tempo: o termo de VM usa a MESMA duracao ceil-por-componente * custo/s
+    (a VM e cobrada por periodo inteiro ligado -- aqui o teto e necessario para validade,
+    nao so conservadorismo). O termo de FX usa o custo fixo do arquivo (task_cost), que nao
+    e derivado de tempo no modelo -- sem teto.
+
+    Nas instancias reais pequenas (DENETHOR), essa regra deixa o CM bem largo como
+    normalizador (varios componentes de ~0.1s cada um pagando 1s inteiro). Decisao
+    consciente: essas instancias usam o CPLEX so para VALIDAR o escalonamento produzido
+    pela heuristica, nao para a FO normalizada ser apertada -- entao o CM largo aqui nao
+    e revisitado por ora.
 """
 
+import math
 from pathlib import Path
 
 
@@ -67,7 +97,12 @@ def parse_instance(path):
 
 
 def detect_time_floor(inst):
-    """1.0 se todos os tempos sao inteiros (sintetica); 0.0 se ha tempo continuo (real)."""
+    """1.0 se todos os tempos sao inteiros (sintetica); 0.0 se ha tempo continuo (real).
+
+    Mantida apenas para compatibilidade com `tm_cm_pessimistic.py` (referencia historica
+    congelada). O resource-aware nao usa mais piso -- ver REGRA DE DISCRETIZACAO no topo
+    do modulo.
+    """
     vals = [t['vmCpuTime'] for t in inst['tasks']]
     vals += [d['readTime'] for d in inst['data_map'].values()]
     vals += [d['writeTime'] for d in inst['data_map'].values()]
@@ -79,30 +114,45 @@ def detect_time_floor(inst):
     return 1.0
 
 
-# ---------- duracoes por tarefa (piso so no total) ----------
+# ---------- teto por componente ----------
 
-def worst_vm_duration(task, data_map, vms, floor):
-    io_read = sum(data_map[d]['readTime'] for d in task['inputs'])      # VM le em serie
-    io_write = sum(data_map[d]['writeTime'] for d in task['outputs'])
-    best = 0.0
-    for vm in vms:
-        cpu = task['vmCpuTime'] * vm['slowdown']
-        best = max(best, max(floor, cpu + io_read + io_write))
-    return best
+_EPS = 1e-9
 
-def worst_fx_duration(task, data_map, fx_configs, floor):
-    io_read = max((data_map[d]['readTime'] for d in task['inputs']), default=0.0)   # FX paraleliza I/O
-    io_write = max((data_map[d]['writeTime'] for d in task['outputs']), default=0.0)
+def _ceil_block(x):
+    """Arredonda para cima para o proximo periodo inteiro (grao = 1s).
+    ceil(0) = 0 (sem trabalho, sem bloco). Subtrai _EPS antes do ceil para que ruido de
+    ponto flutuante perto de um inteiro exato (ex: cpu*slowdown = 7.0000000001) nao gere
+    +1 espurio."""
+    return float(math.ceil(x - _EPS)) if x > _EPS else 0.0
+
+
+# ---------- duracoes por tarefa (teto por componente: read, cpu/exec, write separados) ----------
+
+def _vm_duration_for(task, data_map, vm):
+    """Duracao da tarefa numa VM especifica: I/O em serie, cada componente com teto."""
+    io_read = sum(_ceil_block(data_map[d]['readTime']) for d in task['inputs'])
+    io_write = sum(_ceil_block(data_map[d]['writeTime']) for d in task['outputs'])
+    cpu = _ceil_block(task['vmCpuTime'] * vm['slowdown'])
+    return io_read + cpu + io_write
+
+def worst_vm_duration(task, data_map, vms):
+    return max((_vm_duration_for(task, data_map, vm) for vm in vms), default=0.0)
+
+def worst_fx_duration(task, data_map, fx_configs):
+    """I/O em paralelo (max), cada componente com teto: max(read), (init+cpu), max(write)."""
+    io_read = _ceil_block(max((data_map[d]['readTime'] for d in task['inputs']), default=0.0))
+    io_write = _ceil_block(max((data_map[d]['writeTime'] for d in task['outputs']), default=0.0))
     best = 0.0
     for fx in fx_configs.get(task['id'], []):
-        best = max(best, max(floor, fx['timeInit'] + fx['timeCpu'] + io_read + io_write))
+        exec_block = _ceil_block(fx['timeInit'] + fx['timeCpu'])
+        best = max(best, io_read + exec_block + io_write)
     return best
 
-def task_durations(inst, floor):
+def task_durations(inst):
     dur_assigned, dur_worst, fx_eligible = {}, {}, {}
     for t in inst['tasks']:
-        d_vm = worst_vm_duration(t, inst['data_map'], inst['vms'], floor)
-        d_fx = worst_fx_duration(t, inst['data_map'], inst['fx'], floor)
+        d_vm = worst_vm_duration(t, inst['data_map'], inst['vms'])
+        d_fx = worst_fx_duration(t, inst['data_map'], inst['fx'])
         if t['type'] == 1:
             fx_eligible[t['id']] = True
             dur_assigned[t['id']] = d_fx          # tipo 1 -> FX (paralelo)
@@ -157,16 +207,20 @@ def list_schedule(tasks, dur_assigned, fx_eligible, num_vms):
 
 # ---------- CM (dual do TM) ----------
 
-def per_task_max_cost(task, inst, floor):
-    """Custo do recurso MAIS CARO permitido (tipo1: FX configs + VMs; tipo0: VMs)."""
+def per_task_max_cost(task, inst):
+    """Custo do recurso MAIS CARO permitido (tipo1: FX configs + VMs; tipo0: VMs).
+
+    VM: duracao com teto por componente (igual ao TM) * custo/s -- a VM e cobrada por
+        periodo inteiro ligado, entao o teto aqui nao e so conservadorismo, e necessario
+        para o bound nao ficar abaixo do que o CPLEX realmente fatura.
+    FX: custo fixo do arquivo (task_cost), sem teto -- nao e derivado de tempo no modelo.
+    """
     costs = []
     if task['type'] == 1:
         for fx in inst['fx'].get(task['id'], []):
             costs.append(fx['cost'])
-    io_read = sum(inst['data_map'][d]['readTime'] for d in task['inputs'])
-    io_write = sum(inst['data_map'][d]['writeTime'] for d in task['outputs'])
     for vm in inst['vms']:
-        dur = max(floor, task['vmCpuTime'] * vm['slowdown'] + io_read + io_write)
+        dur = _vm_duration_for(task, inst['data_map'], vm)
         costs.append(dur * vm['costPerSecond'])
     return max(costs) if costs else 0.0
 
@@ -175,20 +229,19 @@ def per_task_max_cost(task, inst, floor):
 
 def compute_bounds(path, margin=0.25, num_vms_override=None):
     inst = parse_instance(path)
-    floor = detect_time_floor(inst)
     nv = num_vms_override or inst['nVMs']
-    da, dw, el = task_durations(inst, floor)
+    da, dw, el = task_durations(inst)
 
     tm_seq = tm_sequential(dw)
     tm_ls, n_vm_type0 = list_schedule(inst['tasks'], da, el, nv)
     tm_final = tm_ls * (1.0 + margin)
 
     # CM: tipo1 -> max(FX,VM) por tarefa; tipo0 -> VM ligada do inicio ao fim (Sigma VMs usadas * TM_ls)
-    cm_tasks = sum(per_task_max_cost(t, inst, floor) for t in inst['tasks'] if t['type'] == 1)
+    cm_tasks = sum(per_task_max_cost(t, inst) for t in inst['tasks'] if t['type'] == 1)
     vm_costs_desc = sorted((vm['costPerSecond'] for vm in inst['vms']), reverse=True)
     cm_vm_idle = sum(vm_costs_desc[:n_vm_type0]) * tm_ls
     cm_final = (cm_tasks + cm_vm_idle) * (1.0 + margin)
 
-    return {'n_tasks': len(inst['tasks']), 'n_vms': inst['nVMs'], 'floor': floor,
+    return {'n_tasks': len(inst['tasks']), 'n_vms': inst['nVMs'],
             'tm_seq': tm_seq, 'tm_ls': tm_ls, 'tm_final': tm_final,
             'cm_tasks': cm_tasks, 'cm_vm_idle': cm_vm_idle, 'cm_final': cm_final}
