@@ -7,8 +7,7 @@ config:
 %% PATTERN: All-to-All / Bipartite (Shuffle)
 %% COMMENT: Workflow estruturado em um modelo bipartido complexo, o fluxo possui um estágio de execução paralelo (t0 a t3) e um estágio subsequente de consolidação cruzada (t4 a t7). A complexidade reside na matriz de dependência de dados, onde cada tarefa do segundo estágio exige frações de dados produzidas por todas as tarefas do primeiro estágio. Este cenário avalia a resiliência da infraestrutura de comunicação e dependência entre tarefas distribuídas. Totaliza 8 tarefas e 24 arquivos de dados.
 flowchart LR
-    classDef default font-size:24px, stroke-width:3px;
-    linkStyle default stroke-width:2px;
+    classDef default font-size:20px;
     subgraph Synthetic_32["Synthetic_032"]
         direction LR
             S32_d0(("d_900"))

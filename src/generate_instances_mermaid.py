@@ -4,12 +4,20 @@ import sys
 import shutil
 
 # --- CONFIGURATION PARAMETERS ---
-USER_TARGET_WORKFLOW_IDS = ["Synthetic_032"]
+#n1
+# USER_TARGET_WORKFLOW_IDS = ["Synthetic_007", "Synthetic_011", "Synthetic_012", "Synthetic_013", "Synthetic_022"]
+
+#n2
+# USER_TARGET_WORKFLOW_IDS = ["Synthetic_015", "Synthetic_016", "Synthetic_020", "Synthetic_025", "Synthetic_029"]
+
+#n3
+USER_TARGET_WORKFLOW_IDS = ["Synthetic_032", "Synthetic_042", "Synthetic_060"]
+
 INPUT_FILE = "data/instances_definition.txt"
 OUTPUT_DIR = "data/mermaid"
-DEFAULT_FONT_SIZE = "24px"
-DEFAULT_STROKE_WIDTH = "3px"
-LINK_STROKE_WIDTH = "2px"
+DEFAULT_FONT_SIZE = "20px"
+DEFAULT_STROKE_WIDTH = None #"3px"
+LINK_STROKE_WIDTH = None #"2px"
 # --------------------------------
 
 def main():
@@ -21,6 +29,8 @@ def main():
         content = f.read()
 
     workflows = content.split('--------------------------------')
+
+    found_ids = set()
 
     for wf in workflows:
         wf = wf.strip()
@@ -38,6 +48,8 @@ def main():
 
         if target_workflows and wf_id not in target_workflows:
             continue
+
+        found_ids.add(wf_id)
 
         try:
             num_str = wf_id.split('_')[1]
@@ -133,8 +145,15 @@ def main():
         mermaid_lines.append("flowchart LR")
 
         # Apply default classes
-        mermaid_lines.append(f"    classDef default font-size:{DEFAULT_FONT_SIZE}, stroke-width:{DEFAULT_STROKE_WIDTH};")
-        mermaid_lines.append(f"    linkStyle default stroke-width:{LINK_STROKE_WIDTH};")
+        classDef_props = []
+        if DEFAULT_FONT_SIZE is not None:
+            classDef_props.append(f"font-size:{DEFAULT_FONT_SIZE}")
+        if DEFAULT_STROKE_WIDTH is not None:
+            classDef_props.append(f"stroke-width:{DEFAULT_STROKE_WIDTH}")
+        if classDef_props:
+            mermaid_lines.append(f"    classDef default {', '.join(classDef_props)};")
+        if LINK_STROKE_WIDTH is not None:
+            mermaid_lines.append(f"    linkStyle default stroke-width:{LINK_STROKE_WIDTH};")
 
         mermaid_lines.append(f'    subgraph Synthetic_{num}["{wf_id}"]')
         mermaid_lines.append("        direction LR")
@@ -178,6 +197,10 @@ def main():
                 print(f"Generated {output_path} (Nodes diverged. Backup kept at {backup_path})")
         else:
             print(f"Generated {output_path}")
+
+    for wf_id in target_workflows:
+        if wf_id not in found_ids:
+            print(f"ERROR: workflow '{wf_id}' not found in {INPUT_FILE}", file=sys.stderr)
 
 
 if __name__ == "__main__":

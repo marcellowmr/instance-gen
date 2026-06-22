@@ -206,7 +206,7 @@ WORKFLOW_ID: Synthetic_060
 TASKS: 12
 DATA: 48
 PATTERN: Massive Scatter-Gather & Data Intensive
-COMMENT: Proposta de unificação dos comportamentos observados no Synthetic_064 e Synthetic_055. Combina um severo fan-out inicial seguido por uma camada altamente paralela que processa os arquivos em múltiplos lotes (agravando o gargalo de I/O) e conclui com um ponto de sincronização rígido (fan-in massivo). Testa de forma simultânea a alocação elástica para muitas tarefas concorrentes e a resiliência a gargalos de transferência e leitura/escrita em armazenamento, balanceando volume de dados e paralelismo. Totaliza 12 tarefas e 48 arquivos de dados.
+COMMENT: Combina um elevado fan-out inicial seguido por uma camada paralela que processa os arquivos em múltiplos lotes (gargalo de I/O) e conclui com um ponto de sincronização (fan-in). Testa de forma simultânea a alocação elástica para muitas tarefas concorrentes e a resiliência a gargalos de transferência e leitura/escrita em armazenamento, balanceando volume de dados e paralelismo. Totaliza 12 tarefas e 48 arquivos de dados.
 ---
 t0: d0 -> d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,d20,d21,d22,d23,d24,d25,d26,d27,d28,d29,d30
 t1: d1,d2,d3 -> d31,d32
