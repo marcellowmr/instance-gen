@@ -1,3 +1,13 @@
+def _parse_range(text):
+    """'1,5' -> (1, 5) como int se inteiro, senão float. Retorna None se vazio/invalido."""
+    parts = [p.strip() for p in text.split(",") if p.strip()]
+    if len(parts) != 2:
+        return None
+    def num(s):
+        return int(s) if ("." not in s and "e" not in s.lower()) else float(s)
+    return (num(parts[0]), num(parts[1]))
+
+
 def load_workflows(input_file: str) -> list:
     workflows = []
     with open(input_file, 'r') as f:
@@ -12,6 +22,9 @@ def load_workflows(input_file: str) -> list:
             num_data = 0
             pattern = ""
             comment_lines = []
+            cpu_time_range = None
+            read_time_range = None
+            write_time_range = None
 
             in_comment = False
             while i < len(lines) and lines[i] != "---":
@@ -24,6 +37,15 @@ def load_workflows(input_file: str) -> list:
                     in_comment = False
                 elif line.startswith("PATTERN:"):
                     pattern = line.split(":", 1)[1].strip()
+                    in_comment = False
+                elif line.startswith("CPU_TIME:"):
+                    cpu_time_range = _parse_range(line.split(":", 1)[1])
+                    in_comment = False
+                elif line.startswith("READ_TIME:"):
+                    read_time_range = _parse_range(line.split(":", 1)[1])
+                    in_comment = False
+                elif line.startswith("WRITE_TIME:"):
+                    write_time_range = _parse_range(line.split(":", 1)[1])
                     in_comment = False
                 elif line.startswith("COMMENT:"):
                     comment_text = line.split(":", 1)[1].strip()
@@ -56,6 +78,9 @@ def load_workflows(input_file: str) -> list:
                 'num_data': num_data,
                 'pattern': pattern,
                 'comment': comment,
+                'cpu_time_range': cpu_time_range,
+                'read_time_range': read_time_range,
+                'write_time_range': write_time_range,
                 'task_defs': task_defs
             })
         i += 1
