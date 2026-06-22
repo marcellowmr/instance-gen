@@ -17,7 +17,7 @@ class WorkflowGeneratorModel:
 
     def __init__(self, num_tasks, num_data, num_vms, num_configs=1, num_bucket_ranges=3,
                  max_running_time=100.0, max_financial_cost=0.1, use_integer_time=False,
-                 fx_slowdown_min=2.0, fx_slowdown_max=70.0):
+                 fx_slowdown_min=2.0, fx_slowdown_max=70.0, task_type=1):
 
         # Validação dos parâmetros extras
         if num_vms > len(self.DEFAULT_VMS):
@@ -36,6 +36,9 @@ class WorkflowGeneratorModel:
         self.use_integer_time = use_integer_time
         self.fx_slowdown_min = fx_slowdown_min
         self.fx_slowdown_max = fx_slowdown_max
+        if task_type not in (0, 1):
+            raise ValueError(f"task_type deve ser 0 (VM-only) ou 1 (VM/FX); recebido {task_type}.")
+        self.task_type = task_type
         self.tasks = []
         self.data_artifacts = {}
         self._model_built = False
@@ -152,7 +155,7 @@ class WorkflowGeneratorModel:
             outputs = self._sort_ids(task["outputs"])
             cpu_time = self._format_time(task["cpu_time"])
             lines.append(
-                f"{task['id']}\t{task['activity_id']}\t1\t{cpu_time}\t{len(inputs)}\t[{','.join(inputs)}]\t{len(outputs)}\t[{','.join(outputs)}]"
+                f"{task['id']}\t{task['activity_id']}\t{self.task_type}\t{cpu_time}\t{len(inputs)}\t[{','.join(inputs)}]\t{len(outputs)}\t[{','.join(outputs)}]"
             )
         return lines
 

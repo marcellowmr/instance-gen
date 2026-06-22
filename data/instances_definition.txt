@@ -86,6 +86,9 @@ WORKFLOW_ID: Synthetic_016
 TASKS: 6
 DATA: 10
 PATTERN: Map, Split, Merge (Cascading Diamonds)
+CPU_TIME: 1,5
+READ_TIME: 1,3
+WRITE_TIME: 1,3
 COMMENT:
 ---
 t0: d0 -> d1,d2
@@ -101,6 +104,9 @@ WORKFLOW_ID: Synthetic_020
 TASKS: 7
 DATA: 13
 PATTERN: Map, Split, Cross-Branch Merge
+CPU_TIME: 1,5
+READ_TIME: 1,3
+WRITE_TIME: 1,3
 COMMENT:
 ---
 t0: d0,d1 -> d2,d3
@@ -147,52 +153,6 @@ t6: d7,d8 -> d14
 t7: d9,d10 -> d15,d16
 t8: d11,d12,d13,d14 -> d17
 t9: d15,d16,d17 -> d18
-
---------------------------------
-
-WORKFLOW_ID: Synthetic_064
-TASKS: 22
-DATA: 42
-PATTERN: Massive Scatter-Gather
-COMMENT: O workflow inicia com uma tarefa de distribuição (t0) que processa um dado de entrada raiz (d0) e gera 20 partições independentes. Estas partições acionam simultaneamente 20 tarefas paralelas (t1 a t20), ideal para avaliar a alocação elástica em instâncias de Funções Serverless. A etapa final (t21) atua como um severo ponto de sincronização (barrier/merge), exigindo a conclusão de todas as ramificações anteriores. Totaliza 22 tarefas e 42 arquivos de dados.
-A tarefa t0 processa o dado de entrada d0 e gera as partições de d1 a d20. Essa etapa aciona simultaneamente 20 tarefas independentes (t1 a t20). Ao final, a tarefa t21 aguarda os resultados de todas essas 20 execuções, atuando como um grande gargalo de sincronização. Total: 22 tarefas, 42 dados.
----
-t0: d0 -> d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,d20
-t1: d1 -> d21
-t2: d2 -> d22
-t3: d3 -> d23
-t4: d4 -> d24
-t5: d5 -> d25
-t6: d6 -> d26
-t7: d7 -> d27
-t8: d8 -> d28
-t9: d9 -> d29
-t10: d10 -> d30
-t11: d11 -> d31
-t12: d12 -> d32
-t13: d13 -> d33
-t14: d14 -> d34
-t15: d15 -> d35
-t16: d16 -> d36
-t17: d17 -> d37
-t18: d18 -> d38
-t19: d19 -> d39
-t20: d20 -> d40
-t21: d21,d22,d23,d24,d25,d26,d27,d28,d29,d30,d31,d32,d33,d34,d35,d36,d37,d38,d39,d40 -> d41
-
---------------------------------
-
-WORKFLOW_ID: Synthetic_055
-TASKS: 4
-DATA: 51
-PATTERN: Data Intensive
-COMMENT: Caracterizado por uma baixa complexidade computacional estrutural (apenas 4 tarefas) em contraste com um alto volume dados (I/O bound). A tarefa inicial (t0) produz simultaneamente 25 arquivos distintos, que são subsequentemente processados em grandes lotes pelas etapas intermediárias e finais. Esta topologia testa o comportamento do escalonador frente a gargalos de transferência de rede e estrangulamento de leitura/escrita em buckets de armazenamento persistente. Totaliza 4 tarefas e 51 arquivos de dados.
-Composto por apenas 4 tarefas lógicas (t0 a t3), este workflow é focado na manipulação de um volume massivo de dados. A tarefa inicial t0 produz 25 arquivos distintos simultaneamente, que são processados em grandes lotes pelas etapas subsequentes. É uma estrutura ideal para testar a resiliência do escalonador frente a gargalos de I/O (leitura e transferência de rede). Total: 4 tarefas, 51 dados.
----
-t0: d0 -> d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,d14,d15,d16,d17,d18,d19,d20,d21,d22,d23,d24,d25
-t1: d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12 -> d26,d27,d28,d29,d30,d31,d32,d33,d34,d35
-t2: d13,d14,d15,d16,d17,d18,d19,d20,d21,d22,d23,d24,d25 -> d36,d37,d38,d39,d40,d41,d42,d43,d44,d45
-t3: d26,d27,d28,d29,d30,d31,d32,d33,d34,d35,d36,d37,d38,d39,d40,d41,d42,d43,d44,d45 -> d46,d47,d48,d49,d50
 
 --------------------------------
 
